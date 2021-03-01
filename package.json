@@ -13,7 +13,6 @@
   ],
   "scripts": {
     "preversion": "npm test",
-    "lint": "standard",
     "unit": "vows --spec ./test/**/*.js",
     "test": "npm run unit && npm run lint",
     "benchmark": "node ./benchmark.js"

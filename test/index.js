@@ -1,6 +1,6 @@
 'use strict'
 
-var expat = require('../lib/node-expat')
+var XmlParser = require('../lib/node-expat')
 var Iconv = require('iconv').Iconv
 var Buffer = require('buffer').Buffer
 var vows = require('vows')
@@ -31,7 +31,7 @@ function collapseTexts (evs) {
 
 function expect (s, evsExpected) {
   for (var step = s.length; step > 0; step--) {
-    expectWithParserAndStep(s, evsExpected, new expat.Parser(), step)
+    expectWithParserAndStep(s, evsExpected, new XmlParser(), step)
   }
 }
 
@@ -179,7 +179,7 @@ vows.describe('node-expat').addBatch({
   },
   'unknownEncoding with single-byte map': {
     'Windows-1252': function () {
-      var p = new expat.Parser()
+      var p = new XmlParser()
       var encodingName
       p.addListener('unknownEncoding', function (name) {
         encodingName = name
@@ -208,7 +208,7 @@ vows.describe('node-expat').addBatch({
   },
   'unknownEncoding with single-byte map using iconv': {
     'Windows-1252': function () {
-      var p = new expat.Parser()
+      var p = new XmlParser()
       var encodingName
       p.addListener('unknownEncoding', function (name) {
         encodingName = name
@@ -247,19 +247,19 @@ vows.describe('node-expat').addBatch({
 
   'reset': {
     'complete doc without error': function () {
-      var p = new expat.Parser('UTF-8')
+      var p = new XmlParser({ defaultEncoding: 'UTF-8' })
       expectWithParserAndStep('<start><first /><second>text</second></start>', [['startElement', 'start', {}], ['startElement', 'first', {}], ['endElement', 'first'], ['startElement', 'second', {}], ['text', 'text'], ['endElement', 'second'], ['endElement', 'start']], p, 1000)
       p.reset()
       expectWithParserAndStep('<restart><third>moretext</third><fourth /></restart>', [['startElement', 'restart', {}], ['startElement', 'third', {}], ['text', 'moretext'], ['endElement', 'third'], ['startElement', 'fourth', {}], ['endElement', 'fourth'], ['endElement', 'restart']], p, 1000)
     },
     'incomplete doc without error': function () {
-      var p = new expat.Parser('UTF-8')
+      var p = new XmlParser({ defaultEncoding: 'UTF-8' })
       expectWithParserAndStep('<start><first /><second>text</second>', [['startElement', 'start', {}], ['startElement', 'first', {}], ['endElement', 'first'], ['startElement', 'second', {}], ['text', 'text'], ['endElement', 'second']], p, 1000)
       p.reset()
       expectWithParserAndStep('<restart><third>moretext</third><fourth /></restart>', [['startElement', 'restart', {}], ['startElement', 'third', {}], ['text', 'moretext'], ['endElement', 'third'], ['startElement', 'fourth', {}], ['endElement', 'fourth'], ['endElement', 'restart']], p, 1000)
     },
     'with doc error': function () {
-      var p = new expat.Parser('UTF-8')
+      var p = new XmlParser({ defaultEncoding: 'UTF-8' })
       expectWithParserAndStep('</end>', [['error', 'not well-formed (invalid token)']], p, 1000)
       p.reset()
       expectWithParserAndStep('<restart><third>moretext</third><fourth /></restart>', [['startElement', 'restart', {}], ['startElement', 'third', {}], ['text', 'moretext'], ['endElement', 'third'], ['startElement', 'fourth', {}], ['endElement', 'fourth'], ['endElement', 'restart']], p, 1000)
@@ -268,7 +268,7 @@ vows.describe('node-expat').addBatch({
   'stop and resume': {
     topic: function () {
       var cb = this.callback
-      var p = new expat.Parser('UTF-8')
+      var p = new XmlParser({ defaultEncoding: 'UTF-8' })
 
       var input = [
         '<wrap>',
@@ -292,7 +292,7 @@ vows.describe('node-expat').addBatch({
 
         // suspend parser for 1/2 second
         if (name === 'long') {
-          p.stop()
+          p.pause()
           setTimeout(function () {
             p.resume()
           }, 500)
@@ -326,7 +326,7 @@ vows.describe('node-expat').addBatch({
   },
   'corner cases': {
     'parse empty string': function () {
-      var p = new expat.Parser('UTF-8')
+      var p = new XmlParser({ defaultEncoding: 'UTF-8' })
       p.parse('')
       assert.ok(true, 'Did not segfault')
     },
@@ -337,7 +337,7 @@ vows.describe('node-expat').addBatch({
           ['endElement', 'e']])
     },
     'parsing twice the same document with the same parser instance should be fine': function () {
-      var p = new expat.Parser('UTF-8')
+      var p = new XmlParser({ defaultEncoding: 'UTF-8' })
       var xml = '<foo>bar</foo>'
       var result = p.parse(xml)
       assert.ok(result)
@@ -350,7 +350,7 @@ vows.describe('node-expat').addBatch({
   },
   'statistics': {
     'line number': function () {
-      var p = new expat.Parser()
+      var p = new XmlParser()
       assert.equal(p.getCurrentLineNumber(), 1)
       p.parse('\n')
       assert.equal(p.getCurrentLineNumber(), 2)
@@ -358,7 +358,7 @@ vows.describe('node-expat').addBatch({
       assert.equal(p.getCurrentLineNumber(), 3)
     },
     'column number': function () {
-      var p = new expat.Parser()
+      var p = new XmlParser()
       assert.equal(p.getCurrentColumnNumber(), 0)
       p.parse(' ')
       assert.equal(p.getCurrentColumnNumber(), 1)
@@ -368,7 +368,7 @@ vows.describe('node-expat').addBatch({
       assert.equal(p.getCurrentColumnNumber(), 0)
     },
     'byte index': function () {
-      var p = new expat.Parser()
+      var p = new XmlParser()
       assert.equal(p.getCurrentByteIndex(), -1)
       p.parse('')
       assert.equal(p.getCurrentByteIndex(), -1)
@@ -381,7 +381,7 @@ vows.describe('node-expat').addBatch({
   'Stream interface': {
     'read file': {
       topic: function () {
-        var p = expat.createParser()
+        var p = new XmlParser()
         this.startTags = 0
         p.on('startElement', function (name) {
           log('startElement', name)
