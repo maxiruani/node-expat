@@ -12,9 +12,7 @@
     "parsing"
   ],
   "scripts": {
-    "preversion": "npm test",
-    "unit": "vows --spec ./test/**/*.js",
-    "test": "npm run unit && npm run lint",
+    "test": "NODE_ENV=testing nyc --reporter=html --reporter=text mocha --timeout 10000 --exit",
     "benchmark": "node ./benchmark.js"
   },
   "dependencies": {
@@ -28,8 +26,8 @@
     "ltx": "^2.3.0",
     "node-xml": "^1.0.2",
     "sax": "^1.2.1",
-    "standard": "^7.1.2",
-    "vows": "^0.8.1"
+    "chai": "^4.2.0",
+    "mocha": "^8.2.1"
   },
   "repository": "github:astro/node-expat",
   "homepage": "http://github.com/astro/node-expat",
