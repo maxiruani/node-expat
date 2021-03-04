@@ -193,7 +193,11 @@ describe('node-expat', () => {
     describe('7. error', () => {
 
         it('1. tag name starting with ampersand', async () => {
-            await _test('<&', [['error', { "code": "ERROR_XML_STREAM", "lineNumber":1, "columnNumber":1, "byteIndex":1 }]]);
+            await _test('<&', [["error",{"code":"ERROR_XML_STREAM","lineNumber":1,"columnNumber":1,"byteIndex":1,"chunk":"< ----->&<----- "}]]);
+        });
+
+        it('2. tag name starting with ampersand', async () => {
+            await _test('<root><item>Item 1</item><&item>Item 2</item></root>', [["startElement","root",{}],["startElement","item",{}],["text","Item 1"],["endElement","item"],["error",{"code":"ERROR_XML_STREAM","lineNumber":1,"columnNumber":26,"byteIndex":26,"chunk":" 1</item>< ----->&<----- item>Item 2</item></root>"}]]);
         });
     });
 
